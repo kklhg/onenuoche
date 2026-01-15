@@ -26,7 +26,7 @@
 异常处理：若拨打电话失败，会弹出提示 “拨打电话失败，请手动拨打：130000000”。
 （2）一键通知车主
 点击「一键通知车主」按钮（获取位置后解除禁用），可触发通知逻辑（代码中未完整展示通知接口调用部分，需结合encodedToken（Base64 加密的 PushPlsh.plsh token）完善接口请求）。
-encodedToken解码：当前值 “ZDU4YTQ5Nzc0Yjc2NDhmN2IxMzk2YTgzMDNiOTkwYjI=” 解码后可得到真实 token，用于接口鉴权；
+encodedToken解码：当前值 “ADU4YTQ5Nzc0Yjc2NDhmN2IxMzk2YTgzMDNiOTkwYjI=” 解码后可得到真实 token，用于接口鉴权；
 通知逻辑扩展：需补充接口请求代码，将留言内容、地理位置等参数传递给后端 / 通知接口，实现向车主推送挪车通知。
 4. 页面加锁 / 解锁功能
 （1）加锁操作
