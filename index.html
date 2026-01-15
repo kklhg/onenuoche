@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一键挪车通知</title>
+    <style>
+        /* 样式部分保持不变 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", "PingFang SC", sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e8f4f8 0%, #f0f8fb 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #2196f3, #42a5f5);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            font-size: 22px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        h1::before {
+            content: '🚗';
+            font-size: 24px;
+        }
+        
+        .shortcut-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .shortcut-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 12px 15px;
+            background-color: #f5fafe;
+            border: 1px solid #e3f2fd;
+            border-radius: 8px;
+            color: #1976d2;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .shortcut-btn:hover {
+            background-color: #2196f3;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(33, 150, 243, 0.2);
+            border-color: #2196f3;
+        }
+        
+        .shortcut-btn:active {
+            transform: translateY(0);
+        }
+        
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 16px;
+            border: 1px solid #e8e8e8;
+            border-radius: 10px;
+            resize: none;
+            font-size: 15px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+            background-color: #fafafa;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #2196f3;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+            background-color: white;
+        }
+        
+        .location-card {
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #fafafa 100%);
+            border-radius: 10px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            color: #4a5568;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e8e8e8;
+        }
+        
+        .location-text {
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        
+        .map-btn {
+            padding: 6px 12px;
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 8px;
+            display: none;
+            transition: background-color 0.2s;
+        }
+        
+        .map-btn.show {
+            display: inline-block;
+        }
+        
+        .map-btn:hover {
+            background-color: #1976d2;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+            margin-bottom: 12px; /* 新增：增加底部间距 */
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(33, 150, 243, 0.3);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .submit-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 直接联系车主按钮样式 */
+        .call-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+        }
+
+        .call-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(76, 175, 80, 0.3);
+        }
+
+        .call-btn:active {
+            transform: translateY(0);
+        }
+        
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 16px 28px;
+            border-radius: 10px;
+            display: none;
+            z-index: 9999;
+            font-size: 15px;
+            min-width: 200px;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -45%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 加锁相关样式 */
+        .lock-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #e8f4f8 0%, #f0f8fb 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+        }
+
+        .lock-card {
+            max-width: 400px;
+            width: 90%;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+
+        .lock-card h2 {
+            color: #2d3748;
+            font-size: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .lock-card h2::before {
+            content: '🔒';
+            font-size: 22px;
+        }
+
+        .lock-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #e8e8e8;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            outline: none;
+        }
+
+        .lock-input:focus {
+            border-color: #2196f3;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+        }
+
+        .lock-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .lock-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(33, 150, 243, 0.2);
+        }
+
+        .lock-btn:active {
+            transform: translateY(0);
+        }
+
+        .lock-tip {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 15px;
+        }
+
+        .operation-btn-group {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9997;
+            display: flex;
+            gap: 10px;
+        }
+
+        .lock-operation-btn {
+            padding: 8px 12px;
+            background: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .lock-operation-btn:hover {
+            background: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <!-- 加锁遮罩层（默认隐藏） -->
+    <div id="lockOverlay" class="lock-overlay" style="display: none;">
+        <div class="lock-card">
+            <h2 id="lockTitle">解锁页面</h2>
+            <input type="password" id="lockPassword" class="lock-input" placeholder="请输入解锁密码">
+            <button id="lockSubmitBtn" class="lock-btn">确认解锁</button>
+            <p class="lock-tip">输入正确密码即可访问页面内容</p>
+        </div>
+    </div>
+
+    <!-- 操作按钮组（加锁/解锁） -->
+    <div class="operation-btn-group">
+        <button id="addLockBtn" class="lock-operation-btn">🔒 加锁</button>
+    </div>
+
+    <div class="container" id="mainContainer">
+        <h1>一键挪车通知</h1>
+        
+        <div class="shortcut-buttons">
+            <button class="shortcut-btn" data-text="你的车挡路了，请尽快挪一下，谢谢！">挡路</button>
+            <button class="shortcut-btn" data-text="临时停靠一下，马上就走，抱歉！">临停</button>
+            <button class="shortcut-btn" data-text="电话打不通，看到请尽快挪车！">没接</button>
+            <button class="shortcut-btn" data-text="麻烦尽快挪车，有急事，非常感谢！">加急</button>
+        </div>
+        
+        <textarea id="messageInput" placeholder="请输入留言内容，或点击上方快捷按钮快速填充..."></textarea>
+        
+        <div class="location-card">
+            <div id="locationText" class="location-text">正在获取位置信息，请稍候...</div>
+            <button id="mapBtn" class="map-btn">🗺️ 打开高德地图查看</button>
+        </div>
+        
+        <button id="submitBtn" class="submit-btn" disabled>一键通知车主</button>
+        <!-- 新增：直接联系车主按钮 -->
+        <button id="callBtn" class="call-btn">📞 直接联系车主</button>
+    </div>
+    
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // ========== 加锁功能核心配置 ==========
+        const LOCK_PASSWORD = '123456';
+        // 本地存储key
+        const LOCK_STATUS_KEY = 'page_lock_status';
+        
+        // ========== DOM元素获取 ==========
+        // 原有元素
+        const shortcutBtns = document.querySelectorAll('.shortcut-btn');
+        const messageInput = document.getElementById('messageInput');
+        const locationText = document.getElementById('locationText');
+        const mapBtn = document.getElementById('mapBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const toast = document.getElementById('toast');
+        // 新增：直接联系车主按钮元素
+        const callBtn = document.getElementById('callBtn');
+        // 加锁相关元素
+        const lockOverlay = document.getElementById('lockOverlay');
+        const lockPassword = document.getElementById('lockPassword');
+        const lockSubmitBtn = document.getElementById('lockSubmitBtn');
+        const lockTitle = document.getElementById('lockTitle');
+        const addLockBtn = document.getElementById('addLockBtn');
+        const mainContainer = document.getElementById('mainContainer');
+        
+        // ========== 全局变量 ==========
+        let locationData = '';
+        let latitude = '';
+        let longitude = '';
+        // PushPlsh.plsh token  base64加密,需要替换您的token
+        const encodedToken = "ADU4YTQ5Nzc0Yjc2NDhmN2IxMzk2YTgzMDNiOTkwYjI=";
+        // 新增：车主电话号码
+        const ownerPhone = '13123465789';
+
+        // ========== 加锁功能核心方法 ==========
+        /**
+         * 检查页面是否处于加锁状态（修改：默认加锁）
+         */
+        function checkLockStatus() {
+            const lockStatus = localStorage.getItem(LOCK_STATUS_KEY);
+            // 如果本地存储无状态，默认设置为加锁
+            if (!lockStatus) {
+                localStorage.setItem(LOCK_STATUS_KEY, 'locked');
+                showLockOverlay('unlock');
+            } else if (lockStatus === 'locked') {
+                showLockOverlay('unlock'); // 明确指定是解锁场景
+            } else {
+                hideLockOverlay();
+            }
+        }
+
+        /**
+         * 显示加锁/解锁遮罩层
+         * @param {string} type - 'lock'（加锁验证）| 'unlock'（解锁验证）
+         */
+        function showLockOverlay(type = 'unlock') {
+            lockOverlay.style.display = 'flex';
+            mainContainer.style.display = 'none';
+            addLockBtn.style.display = 'none';
+            
+            if (type === 'lock') {
+                lockTitle.textContent = '确认加锁';
+                lockPassword.placeholder = '请输入加锁密码';
+                lockSubmitBtn.textContent = '确认加锁';
+            } else {
+                lockTitle.textContent = '解锁页面';
+                lockPassword.placeholder = '请输入解锁密码';
+                lockSubmitBtn.textContent = '确认解锁';
+            }
+            lockPassword.value = '';
+            lockPassword.focus();
+        }
+
+        /**
+         * 隐藏加锁遮罩层
+         */
+        function hideLockOverlay() {
+            lockOverlay.style.display = 'none';
+            mainContainer.style.display = 'block';
+            addLockBtn.style.display = 'block';
+        }
+
+        /**
+         * 验证密码
+         * @param {string} password - 输入的密码
+         * @returns {boolean}
+         */
+        function verifyPassword(password) {
+            return password === LOCK_PASSWORD;
+        }
+
+        /**
+         * 设置页面加锁状态
+         * @param {boolean} isLocked - 是否加锁
+         */
+        function setLockStatus(isLocked) {
+            if (isLocked) {
+                localStorage.setItem(LOCK_STATUS_KEY, 'locked');
+                // 设置加锁状态后，立即显示解锁界面
+                showLockOverlay('unlock');
+            } else {
+                localStorage.setItem(LOCK_STATUS_KEY, 'unlocked');
+                hideLockOverlay();
+            }
+        }
+
+        // ========== 加锁功能事件绑定 ==========
+        /**
+         * 加锁/解锁按钮点击事件
+         */
+        lockSubmitBtn.addEventListener('click', function() {
+            const password = lockPassword.value.trim();
+            if (!password) {
+                showToast('请输入密码');
+                return;
+            }
+
+            if (!verifyPassword(password)) {
+                showToast('密码错误，请重试');
+                lockPassword.value = '';
+                return;
+            }
+
+            // 判断是加锁还是解锁
+            if (lockSubmitBtn.textContent.includes('解锁')) {
+                // 解锁逻辑
+                setLockStatus(false);
+                showToast('解锁成功！');
+            } else {
+                // 加锁逻辑 - 验证密码后才真正加锁
+                setLockStatus(true);
+                showToast('加锁成功！');
+            }
+        });
+
+        /**
+         * 点击加锁按钮 - 只弹出密码框，不直接加锁
+         */
+        addLockBtn.addEventListener('click', function() {
+            // 仅显示加锁验证框，不执行加锁操作
+            showLockOverlay('lock');
+        });
+
+        /**
+         * 密码框回车事件
+         */
+        lockPassword.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                lockSubmitBtn.click();
+            }
+        });
+
+        // ========== 直接联系车主功能 ==========
+        /**
+         * 拨打车主电话
+         */
+        function callOwner() {
+            try {
+                // 使用tel协议触发拨打电话
+                window.location.href = `tel:${ownerPhone}`;
+                showToast(`正在拨打 ${ownerPhone}...`, 1500);
+            } catch (error) {
+                showToast('拨打电话失败，请手动拨打：13123456789');
+                console.error('拨打电话错误：', error);
+            }
+        }
+
+        // ========== 解密功能 ==========
+        /**
+         * 解码函数
+         */
+        function decodeBase64(str) {
+            try {
+                return atob(str);
+            } catch (e) {
+                console.error('解码失败:', e);
+                return '';
+            }
+        }
+        
+        /**
+         * 快捷按钮点击事件
+         */
+        shortcutBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const text = btn.getAttribute('data-text');
+                messageInput.value = text;
+                messageInput.focus();
+                
+                btn.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    btn.style.transform = '';
+                }, 100);
+            });
+        });
+        
+        /**
+         * 获取当前位置
+         */
+        function getCurrentLocation() {
+            if (!navigator.geolocation) {
+                locationText.textContent = '你的浏览器不支持位置获取功能';
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    latitude = position.coords.latitude.toFixed(6);
+                    longitude = position.coords.longitude.toFixed(6);
+                    locationData = `纬度：${latitude}，经度：${longitude}`;
+                    locationText.textContent = `当前位置：${locationData}`;
+                    
+                    mapBtn.classList.add('show');
+                    submitBtn.disabled = false;
+                },
+                (error) => {
+                    let errorMsg = '';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMsg = '你拒绝了位置权限请求，无法获取位置信息';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMsg = '位置信息不可用';
+                            break;
+                        case error.TIMEOUT:
+                            errorMsg = '获取位置超时，请重试';
+                            break;
+                        case error.UNKNOWN_ERROR:
+                            errorMsg = '未知错误，无法获取位置';
+                            break;
+                    }
+                    locationText.textContent = errorMsg;
+                    submitBtn.disabled = false;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+        
+        /**
+         * 打开高德地图
+         */
+        function openAmap() {
+            if (!latitude || !longitude) return;
+            const amapUrl = `https://uri.amap.com/marker?position=${longitude},${latitude}&name=当前位置`;
+            window.open(amapUrl, '_blank');
+        }
+        
+        /**
+         * 显示提示框
+         */
+        function showToast(text, duration = 2000) {
+            toast.textContent = text;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, duration);
+        }
+        
+        /**
+         * 提交数据到pushplus
+         */
+        async function submitData() {
+            const message = messageInput.value.trim();
+            if (!message) {
+                showToast('请输入留言内容');
+                return;
+            }
+
+            // 解码token
+            const token = decodeBase64(encodedToken);
+            if (!token) {
+                showToast('配置错误，无法发送通知');
+                return;
+            }
+            
+            // 拼接内容
+            const content = `留言：${message}\n位置：${locationData || '未获取到位置信息'}\n高德地图：https://amap.com/navigation?lat=${longitude}&lon=${latitude}&dev=0`;
+            
+            // 构建请求URL
+            const url = `https://www.pushplus.plus/send?token=${token}&title=挪车通知&content=${encodeURIComponent(content)}`;
+            
+            try {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="loading"></span> 正在发送...';
+                
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    showToast('通知发送成功！');
+                    messageInput.value = '';
+                } else {
+                    showToast(`发送失败：${result.msg}`);
+                }
+            } catch (error) {
+                showToast('网络错误，发送失败');
+                console.error('提交错误：', error);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '一键通知车主';
+            }
+        }
+        
+        // ========== 事件绑定 & 初始化 ==========
+        // 原有事件
+        mapBtn.addEventListener('click', openAmap);
+        submitBtn.addEventListener('click', submitData);
+        // 新增：绑定拨打电话按钮事件
+        callBtn.addEventListener('click', callOwner);
+        
+        // 页面加载时检查加锁状态
+        window.addEventListener('load', function() {
+            checkLockStatus();
+            getCurrentLocation();
+        });
+
+        // 防止刷新/关闭时丢失加锁状态
+        window.addEventListener('beforeunload', function() {
+            const isLocked = lockOverlay.style.display === 'flex' && lockTitle.textContent === '解锁页面';
+            if (isLocked) {
+                localStorage.setItem(LOCK_STATUS_KEY, 'locked');
+            }
+        });
+    </script>
+</body>
+</html>
