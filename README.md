@@ -3,6 +3,7 @@
 一、功能概述
 该页面是一款一键挪车通知工具，支持快捷生成挪车留言、获取当前地理位置、一键通知车主以及直接联系车主，同时具备页面加锁 / 解锁的安全防护功能，适用于需要便捷通知车主挪车的场景。
 Fork后修改自己的token和电话号码。
+
 二、核心功能使用说明
 1. 基础挪车留言操作
 （1）快捷填充留言
@@ -50,6 +51,7 @@ LOCK_STATUS_KEY	本地存储加锁状态的 key	无需修改，仅用于标识�
 encodedToken	PushPlsh.plsh token（Base64 加密）	替换为实际的加密 token，用于通知接口鉴权
 ownerPhone	车主电话号码	替换为实际需要联系的车主手机号
 shortcut-btn的data-text属性	快捷留言内容	可新增 / 修改按钮的data-text值，调整快捷留言文案
+
 四、使用环境要求
 浏览器：支持 HTML5、Geolocation（地理位置）API 的现代浏览器（Chrome、Edge、Safari、Firefox 等）；
 设备：
